@@ -1,14 +1,12 @@
-// import { InferenceClient } from "@huggingface/inference"; /* when you are using Huggingface interference */
 import dotenv from "dotenv";
-import { GoogleGenerativeAI } from "@google/generative-ai"; //for using gemni   
+import { GoogleGenerativeAI } from "@google/generative-ai";
 dotenv.config();
 
-// const client = new InferenceClient(process.env.HuggingFace_API_KEY); /* when you are using Huggingface interference */
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); //for gemni
-
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function getTutorialFromRepo(repoContent) {
-  const prompt =`You are an expert technical writer and software explainer.
+  const prompt = `
+You are an expert technical writer and software explainer.
 
 Your task is to analyze the provided GitHub project source code and generate a beginner-friendly, SEO-optimized tutorial in **strict JSON format**
 
@@ -19,7 +17,7 @@ Your task is to analyze the provided GitHub project source code and generate a b
 {
   "title": "Tutorial: <Project Name>",
   "summary": "A brief beginner-friendly explanation of the project using **bold** and *italic* for highlights.",
-  "flowchart": "<Mermaid.js compatible flowchart (e.g., flowchart TD\nA --> B)>",
+  "flowchart": "<Mermaid.js compatible flowchart (e.g., graph TD\\nA --> B)>",
   "chapters": [
     {
       "title": "Chapter 1: Overview of <Project Name>",
@@ -39,9 +37,9 @@ Your task is to analyze the provided GitHub project source code and generate a b
 ---
 
 ✅ Guidelines:
--ONLY return valid JSON. Do NOT include extra text or commentary.
+- ONLY return valid JSON. Do NOT include extra text or commentary.
 - Use **bold** and *italic* markdown to highlight key terms.
-- Output must include a flowchart in Mermaid syntax showing the relationships between main components/files.
+- Output must include a Mermaid flowchart showing the relationships between main components/files.
 - Chapters should be clear, concise, and structured like a book/tutorial.
 - Prefer code structure-based breakdown over file-by-file dumping.
 - Keep tone beginner-friendly, with no jargon unless explained.
@@ -50,45 +48,36 @@ Your task is to analyze the provided GitHub project source code and generate a b
 
 📁 GitHub Code:
 ${repoContent}
-        `
+`;
 
-  /* when you are using Huggingface interference */
-  // const chatCompletion = await client.chatCompletion({
-  //   provider: "novita", // for chat-style inference
-  //   model: "deepseek-ai/DeepSeek-R1-0528", // or HuggingFaceH4/zephyr-7b-beta
-  //   messages: [
-  //     {
-  //       role: "user",
-  //       content: prompt,
-  //     },
-  //   ],
-  // });
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-04-17" });
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash-preview-04-17",
+  });
 
-let raw = "";
- try {
+  let raw = "";
+
+  try {
     const result = await model.generateContent(prompt);
     raw = await result.response.text();
 
     // Try to extract the JSON from the text
-    const jsonMatch = raw.match(/\{[\s\S]*\}/); // greedy match of full JSON object
+    const jsonMatch = raw.match(/\{[\s\S]*\}/); // greedy match
     if (!jsonMatch) {
-      console.error("⚠️ No valid JSON block found.");
-      throw new Error("Gemini did not return a JSON object.");
+      console.error("⚠️ No valid JSON block found in Gemini output.");
+      throw new Error("Gemini did not return a valid JSON object.");
     }
 
     const cleaned = jsonMatch[0]
-      .replace(/\\n/g, "\\n") // ensure linebreaks stay escaped
-      .replace(/“|”/g, '"') // fancy quotes to normal
-      .replace(/‘|’/g, "'") // fancy apostrophes
-      .replace(/,\s*}/g, "}").replace(/,\s*]/g, "]"); // remove trailing commas
+      .replace(/“|”/g, '"') // replace fancy quotes
+      .replace(/‘|’/g, "'") // replace fancy apostrophes
+      .replace(/,\s*}/g, "}") // remove trailing commas
+      .replace(/,\s*]/g, "]");
 
-    // Try parsing JSON
     const parsed = JSON.parse(cleaned);
     return parsed;
   } catch (err) {
     console.error("🛑 JSON parsing failed:", err.message);
-    console.error("🧾 Gemini output (cleaned):", raw.slice(0, 1000));
+    console.error("🧾 Gemini raw output (start):", raw.slice(0, 1000));
     throw new Error("Failed to parse Gemini output.");
   }
 }
