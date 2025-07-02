@@ -23,7 +23,7 @@ export default function TutorialInput({
     setTutorial("");
 
     try {
-      const res = await fetch("http://localhost:8000/api/tutorial", {
+      const res = await fetch("https://gitdocify.vercel.app/api/tutorial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repoUrl: repoUrl.trim() }),
