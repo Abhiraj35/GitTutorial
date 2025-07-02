@@ -24,6 +24,7 @@ export default function TutorialInput({
 
     try {
       const res = await fetch("https://gitdocify.vercel.app/api/tutorial", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repoUrl: repoUrl.trim() }),
       });
