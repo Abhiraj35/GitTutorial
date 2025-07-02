@@ -24,12 +24,15 @@ export default function TutorialInput({
 
     try {
       const res = await fetch("https://gitdocify.vercel.app/api/tutorial", {
-        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repoUrl: repoUrl.trim() }),
       });
+       if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Failed to fetch tutorial.");
+      }
       const data = await res.json();
-      setTutorial(data); // Directly store the JSON response
+      setTutorial(data);
     } catch (err) {
       console.error("❌ Tutorial error:", err);
       setTutorial("❌ Error generating tutorial");
