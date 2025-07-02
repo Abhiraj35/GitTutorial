@@ -8,7 +8,7 @@ import { fetchGitContent } from "./fetchGitContent.js";
 const app = express();
 const PORT = 8000;
 const coresOptions = {
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173","https://git-tutorials.netlify.app"],
   credentials: true
 }
 app.use(cors());
