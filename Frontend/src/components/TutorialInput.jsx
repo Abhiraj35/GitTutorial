@@ -42,11 +42,18 @@ export default function TutorialInput({
     }
   }
 
+  const handleKeypress = async (event) => {
+    //here we are looking for the key whether it is "enter key" or not
+    if(event.code === 'Enter'){
+      await generateTutorial();
+    }
+  }
   return (
     <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
       <input
         value={repoUrl}
         onChange={(e) => setRepoUrl(e.target.value)}
+        onKeyDown={handleKeypress}
         placeholder="Enter GitHub repo URL"
         className="w-full md:w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
