@@ -3,15 +3,29 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { getTutorialFromRepo } from "./getTutorialFromRepo.js";
 import { fetchGitContent } from "./fetchGitContent.js";
+import rateLimit from 'express-rate-limit';
 
 
 const app = express();
 const PORT = 8000;
-const coresOptions = {
+const corsOptions = {
   origin: ["http://localhost:5173","https://git-tutorials.netlify.app"],
   credentials: true
 }
-app.use(cors());
+
+//  Rate Limiter: max 5 requests per 10 minutes per IP
+const tutorialLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, //10 min
+  max:5,
+  message:{
+    error: "To many requests. Please try again after some time..."
+  },
+  standardHeaders:true,
+  legacyHeaders:false,
+});
+
+app.use('/api/tutorial',tutorialLimiter);
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 app.post("/api/tutorial", async (req, res) => {
