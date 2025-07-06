@@ -100,7 +100,7 @@ cd ../Frontend
 npm run dev
 ```
 
-> Visit your app at: [https://git-tutorials.netlify.app](https://git-tutorials.netlify.app)
+> Visit app at: [https://git-tutorials.netlify.app](https://git-tutorials.netlify.app)
 
 ---
 
@@ -225,4 +225,4 @@ Made with ❤️ by **Abhiraj Kumar**
 
 ## ⭐️ Support
 
-If you liked this project, leave a ⭐️ on [GitHub](https://github.com/your-username/GitTutorial) and connect with me!
+If you liked this project, leave a ⭐️ on [GitHub](https://github.com/Abhiraj35/GitTutorial) and connect with me!
