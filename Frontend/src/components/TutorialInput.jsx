@@ -6,6 +6,7 @@ export default function TutorialInput({
   setLoading,
   loading,
   setRequested,
+  setError,
 }) {
   const [repoUrl, setRepoUrl] = useState("");
 
@@ -18,6 +19,7 @@ export default function TutorialInput({
       alert("❗ Please enter a valid GitHub repository URL.");
       return;
     }
+    setError(false);
     setRequested(true);
     setLoading(true);
     setTutorial("");
@@ -35,8 +37,8 @@ export default function TutorialInput({
       const data = await res.json();
       setTutorial(data);
     } catch (err) {
-      console.error("❌ Tutorial error:", err);
-      setTutorial("❌ Error generating tutorial");
+      setError("Failed to generate tutorial. Please check the repo URL.");
+      
     } finally {
       setLoading(false);
     }
