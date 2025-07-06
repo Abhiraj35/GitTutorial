@@ -4,6 +4,7 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Tailwind-blueviolet)](https://reactjs.org/)
 [![Backend](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-green)](https://expressjs.com/)
 [![Hosted on Vercel](https://img.shields.io/badge/Deployed-Vercel-black?logo=vercel)](https://vercel.com)
+[![Hosted on Netlify](https://img.shields.io/badge/Deployed-Netlify-green?logo=vercel)](https://netlify.com)
 
 ---
 
@@ -28,7 +29,8 @@
 
 ## 📸 Preview
 
-> _Insert image or GIF here showing full flow (input → tutorial display)_
+  ![image](https://github.com/user-attachments/assets/6591893b-7a0f-401a-bf4b-f460c7661763)
+
 
 ---
 
