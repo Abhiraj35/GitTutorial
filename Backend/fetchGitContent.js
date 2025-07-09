@@ -96,7 +96,7 @@ async function fetchFilesFromGitHub(repoUrl) {
 
     return combinedContent || "No valid files found.";
   } catch (err) {
-    console.error("❌ Failed to fetch repo via GitHub API:", err.message);
+    console.error("Failed to fetch repo via GitHub API:", err.message);
     throw err;
   }
 }

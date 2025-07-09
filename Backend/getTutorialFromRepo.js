@@ -76,8 +76,8 @@ ${repoContent}
     const parsed = JSON.parse(cleaned);
     return parsed;
   } catch (err) {
-    console.error("🛑 JSON parsing failed:", err.message);
-    console.error("🧾 Gemini raw output (start):", raw.slice(0, 1000));
+    console.error("JSON parsing failed:", err.message);
+    console.error("Gemini raw output (start):", raw.slice(0, 1000));
     throw new Error("Failed to parse Gemini output.");
   }
 }
