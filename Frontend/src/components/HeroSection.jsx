@@ -8,10 +8,10 @@ export default function HeroSection() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <h1 className="text-4xl md:text-5xl font-bold leading-tight">
+      <h1 className="text-4xl md:text-5xl font-bold leading-tight text-white">
         Transform GitHub Repos into <span className="text-blue-600">SEO-Friendly Tutorials</span>
       </h1>
-      <p className="mt-4 text-lg text-gray-600">
+      <p className="mt-4 text-lg text-zinc-200">
         Instantly convert GitHub repositories into beautiful, structured guides using AI.
       </p>
     </motion.section>

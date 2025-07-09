@@ -19,7 +19,7 @@ const Home = () => {
   }
 }, [tutorial, loading]);
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-100 text-gray-900 px-4 md:px-8">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-gray-900 px-4 md:px-8 ">
       <HeroSection />
       <TutorialInput
         setTutorial={setTutorial}

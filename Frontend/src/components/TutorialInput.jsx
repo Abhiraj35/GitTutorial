@@ -57,11 +57,11 @@ export default function TutorialInput({
         onChange={(e) => setRepoUrl(e.target.value)}
         onKeyDown={handleKeypress}
         placeholder="Enter GitHub repo URL"
-        className="w-full md:w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full md:w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-amber-50"
       />
       <button
         onClick={generateTutorial}
-        disabled={loading}
+        disabled={loading || !repoUrl.trim()}
         className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-60"
       >
         <FaGithub />
