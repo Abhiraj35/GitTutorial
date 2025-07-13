@@ -1,4 +1,3 @@
-
 # 📘 GitTutorial - Convert GitHub Repos into Developer-Friendly Tutorials
 
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Tailwind-blueviolet)](https://reactjs.org/)
@@ -51,7 +50,7 @@
 ### 📥 Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/GitTutorial.git
+git clone https://github.com/Abhiraj35/GitTutorial.git
 cd GitTutorial
 ```
 
@@ -59,13 +58,13 @@ cd GitTutorial
 
 #### Backend (`/Backend/.env`)
 ```env
-PORT=5000
-Gemni_API_KEY=your_openrouter_api_key
+PORT=8000
+Gemni_API_KEY=your_gemni_api_key
 ```
 
 #### Frontend (`/Frontend/.env`)
 ```env
-VITE_BACKEND_URL=http://localhost:5000
+VITE_BACKEND_URL=http://localhost:8000
 ```
 
 ---
