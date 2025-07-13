@@ -1,4 +1,6 @@
 import fetch from "node-fetch";
+import dotenv from 'dotenv'
+dotenv.config();
 
 const allowedExtensions = [
   ".js",
@@ -17,10 +19,13 @@ const allowedExtensions = [
 const maxFileSize = 40 * 1024; // 40KB
 const maxTotalLength = 100000;
 
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
 function isCodeFile(filePath) {
-  return allowedExtensions.includes(
-    filePath.substring(filePath.lastIndexOf(".")).toLowerCase()
-  );
+  const ext = filePath.includes(".")
+    ? filePath.slice(filePath.lastIndexOf(".")).toLowerCase()
+    : "";
+  return allowedExtensions.includes(ext);
 }
 
 function sanitizeContent(str) {
@@ -47,30 +52,36 @@ function prioritizeFiles(files) {
   });
 }
 
+async function fetchWithAuth(url){
+  const headers = GITHUB_TOKEN ? { Authorization: `token${GITHUB_TOKEN}`} : {};
+
+  const res = await fetch(url,{headers});
+
+  if(!res.ok){
+    throw new Error(`Github API error ${res.status}: ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
 async function fetchFilesFromGitHub(repoUrl) {
   try {
     const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)(\/|$)/);
     if (!match || !match[1] || !match[2]) {
-      throw new Error(
-        "Invalid GitHub repo URL. Use format: https://github.com/user/repo"
-      );
+      throw new Error("Invalid GitHub repo URL. Use format: https://github.com/user/repo");
     }
 
-    const owner = match[1];
-    const repo = match[2];
-    const repoMetaRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}`
-    );
-    const repoMeta = await repoMetaRes.json();
+    const [_, owner, repo] = match;
+    const repoMeta = await fetchWithAuth(`https://api.github.com/repos/${owner}/${repo}`);
     const defaultBranch = repoMeta.default_branch || "main";
 
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`;
-    const res = await fetch(apiUrl);
-    const data = await res.json();
+    const treeData = await fetchWithAuth(
+      `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`
+    );
 
-    if (!data.tree) throw new Error("Failed to fetch repo tree");
+    if (!treeData.tree) throw new Error("Repository file tree not found.");
 
-    const codeFiles = data.tree.filter(
+    const codeFiles = treeData.tree.filter(
       (file) =>
         file.type === "blob" &&
         isCodeFile(file.path) &&
@@ -78,17 +89,22 @@ async function fetchFilesFromGitHub(repoUrl) {
     );
 
     const prioritized = prioritizeFiles(codeFiles);
-
     let combinedContent = "";
 
-    for (const file of prioritized) {
+    const fetchFileContent = async (file) => {
       const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`;
-      const response = await fetch(rawUrl);
-      const content = await response.text();
+      const res = await fetch(rawUrl);
+      if (!res.ok) return null;
 
-      const entry = `\n--- FILE: ${file.path} ---\n${sanitizeContent(
-        content
-      )}\n`;
+      const content = await res.text();
+      const entry = `\n--- FILE: ${file.path} ---\n${sanitizeContent(content)}\n`;
+
+      return entry;
+    };
+
+    for (const file of prioritized) {
+      const entry = await fetchFileContent(file);
+      if (!entry) continue;
 
       if (combinedContent.length + entry.length > maxTotalLength) break;
       combinedContent += entry;
@@ -96,7 +112,7 @@ async function fetchFilesFromGitHub(repoUrl) {
 
     return combinedContent || "No valid files found.";
   } catch (err) {
-    console.error("Failed to fetch repo via GitHub API:", err.message);
+    console.error("GitHub fetch error:", err.message);
     throw err;
   }
 }
