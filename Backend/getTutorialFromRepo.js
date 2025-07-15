@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {GoogleGenAI} from '@google/genai';
+
 dotenv.config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
 export async function getTutorialFromRepo(repoContent) {
   const prompt = `
@@ -50,18 +51,17 @@ Your task is to analyze the provided GitHub project source code and generate a b
 ${repoContent}
 `;
 
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-preview-04-17",
-  });
-
   let raw = "";
 
   try {
-    const result = await model.generateContent(prompt);
-    raw = await result.response.text();
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite-preview-06-17',
+      contents: prompt
+    })
+    raw = result.candidates[0].content.parts[0].text;
 
     // Try to extract the JSON from the text
-    const jsonMatch = raw.match(/\{[\s\S]*\}/); // greedy match
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error("⚠️ No valid JSON block found in Gemini output.");
       throw new Error("Gemini did not return a valid JSON object.");
