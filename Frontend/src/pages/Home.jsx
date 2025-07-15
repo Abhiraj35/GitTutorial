@@ -6,8 +6,6 @@ import TutorialReader from "../components/TutorialReader";
 import ModernLoadingAnimation from "../components/ModernLoadingAnimation";
 
 const Home = () => {
- 
-
   const [tutorial, setTutorial] = useState("");
   const [loading, setLoading] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -39,7 +37,7 @@ const Home = () => {
 
       {/* ERROR STATE */}
       {!loading && error && (
-        <div className="mt-8 p-4 bg-red-100 border border-red-300 rounded flex items-center justify-center gap-2 text-red-700 text-sm">
+        <div className="my-8 p-4 bg-red-100 border border-red-300 rounded flex items-center justify-center gap-2 text-red-700 text-sm">
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
@@ -47,7 +45,7 @@ const Home = () => {
 
       {/* NO TUTORIAL YET */}
       {!loading && requested && !tutorial && !error && (
-        <div className="mt-8 p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 text-center rounded">
+        <div className="my-8 p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 text-center rounded">
           No tutorial found for this repository. Please try again with a valid repo.
         </div>
       )}

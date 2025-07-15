@@ -37,7 +37,7 @@ const ChapterContent = ({
                   </span>
                   <button
                     onClick={() => handleCopy(part.content, index)}
-                    className="text-gray-400 hover:text-white flex items-center gap-1 text-xs transition-opacity opacity-0 group-hover:opacity-100"
+                    className="text-gray-100 hover:text-white flex items-center gap-1 text-xs"
                   >
                     <Copy className="w-4 h-4" />
                     {copiedIndex === index ? "Copied!" : "Copy"}

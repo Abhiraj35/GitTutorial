@@ -8,7 +8,7 @@ const Sidebar = ({
   setShowFlowchart,
   getChapterIcon,
 }) => (
-  <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 sticky top-32">
+  <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 sticky top-32 max-h-fit">
     <h2 className="text-lg font-semibold mb-4 text-gray-200">Chapters</h2>
     <nav className="space-y-2">
       {chapters.map((chapter, index) => (
