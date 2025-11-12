@@ -50,7 +50,7 @@ const Home = () => {
     setTutorial("");
 
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL?.trim() || "https://gitdocify.vercel.app";
+      const baseUrl = import.meta.env.VITE_BACKEND_URL?.trim() || "https://git-tutorial-nine-sigma.vercel.app";
       const endpoint = new URL("/api/tutorial", baseUrl).toString();
       const res = await fetch(endpoint, {
         method: "POST",
