@@ -9,9 +9,16 @@ import rateLimit from 'express-rate-limit';
 const app = express();
 const PORT = 8000;
 const corsOptions = {
-  origin: ["http://localhost:5173","https://git-tutorials.netlify.app"],
-  credentials: true
+  origin: ["http://localhost:5173", "https://git-tutorials.netlify.app"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 200
 }
+
+// Apply CORS before rate limiting to handle preflight requests
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
 
 //  Rate Limiter: max 5 requests per 10 minutes per IP
 const tutorialLimiter = rateLimit({
@@ -24,11 +31,8 @@ const tutorialLimiter = rateLimit({
   legacyHeaders:false,
 });
 
-app.use('/api/tutorial',tutorialLimiter);
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-
-app.post("/api/tutorial", async (req, res) => {
+// Apply rate limiter to POST requests only
+app.post("/api/tutorial", tutorialLimiter, async (req, res) => {
   try {
     const { repoUrl } = req.body;
     const content = await fetchGitContent(repoUrl);
