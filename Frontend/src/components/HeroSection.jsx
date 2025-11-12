@@ -1,18 +1,27 @@
 import { motion } from "framer-motion";
 
 export default function HeroSection() {
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
   return (
-    <motion.section 
+    <motion.section
       className="text-center py-12 max-w-3xl mx-auto"
-      initial={{ opacity: 0, y: -30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
     >
-      <h1 className="text-4xl md:text-5xl font-bold leading-tight text-white">
-        Transform GitHub Repos into <span className="text-blue-600">SEO-Friendly Tutorials</span>
+      <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 text-balance">
+        Turn any GitHub repo into a chapter-wise tutorial
       </h1>
-      <p className="mt-4 text-lg text-zinc-200">
-        Instantly convert GitHub repositories into beautiful, structured guides using AI.
+      <p className="text-xl text-gray-300 mb-8 text-balance">
+        Learn from real projects, one step at a time — powered by AI
       </p>
     </motion.section>
   );
