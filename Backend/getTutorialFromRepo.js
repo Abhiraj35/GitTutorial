@@ -3,9 +3,12 @@ import {GoogleGenAI} from '@google/genai';
 
 dotenv.config();
 
-const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
-
 export async function getTutorialFromRepo(repoContent) {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.Gemni_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing GEMINI_API_KEY environment variable");
+  }
+  const ai = new GoogleGenAI({ apiKey });
   const prompt = `
 You are an expert technical writer and software explainer.
 
@@ -54,11 +57,19 @@ ${repoContent}
   let raw = "";
 
   try {
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite-preview-06-17';
     const result = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite-preview-06-17',
+      model,
       contents: prompt
     })
-    raw = result.candidates[0].content.parts[0].text;
+    raw = (
+      result?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      result?.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      (typeof result?.text === 'function' ? await result.text() : '')
+    );
+    if (!raw || typeof raw !== 'string') {
+      throw new Error('Empty response from Gemini');
+    }
 
     // Try to extract the JSON from the text
     const jsonMatch = raw.match(/\{[\s\S]*\}/);

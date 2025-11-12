@@ -50,7 +50,9 @@ const Home = () => {
     setTutorial("");
 
     try {
-      const res = await fetch("https://gitdocify.vercel.app/api/tutorial", {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL?.trim() || "https://gitdocify.vercel.app";
+      const endpoint = new URL("/api/tutorial", baseUrl).toString();
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repoUrl: url.trim() }),
@@ -61,7 +63,7 @@ const Home = () => {
       }
       const data = await res.json();
       setTutorial(data);
-    } catch (err) {
+    } catch (_ERR) {
       setError("Failed to generate tutorial. Please check the repo URL.");
     } finally {
       setLoading(false);
