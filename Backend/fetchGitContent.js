@@ -53,7 +53,7 @@ function prioritizeFiles(files) {
 }
 
 async function fetchWithAuth(url){
-  const headers = GITHUB_TOKEN ? { Authorization: `token${GITHUB_TOKEN}`} : {};
+  const headers = GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}`} : {};
 
   const res = await fetch(url,{headers});
 

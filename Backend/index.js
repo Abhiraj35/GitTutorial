@@ -18,7 +18,7 @@ const tutorialLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, //10 min
   max:5,
   message:{
-    error: "To many requests. Please try again after some time..."
+    error: "Too many requests. Please try again after some time..."
   },
   standardHeaders:true,
   legacyHeaders:false,
