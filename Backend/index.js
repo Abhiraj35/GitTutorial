@@ -42,7 +42,9 @@ const tutorialLimiter = rateLimit({
   standardHeaders:true,
   legacyHeaders:false,
 });
-
+app.get('/healthz',(req,res) => {
+  res.status(400).json({message: "Health route is working"})
+})
 // Apply rate limiter to POST requests only
 app.post("/api/tutorial", tutorialLimiter, async (req, res) => {
   try {
