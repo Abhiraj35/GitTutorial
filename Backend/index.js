@@ -41,12 +41,6 @@ const tutorialLimiter = rateLimit({
   },
   standardHeaders:true,
   legacyHeaders:false,
-  skip: (req) => req.method === 'OPTIONS' // Skip preflight requests
-});
-
-// Health check endpoint (no rate limiting)
-app.get("/api/tutorial", (req, res) => {
-  res.json({ status: "ok", message: "Tutorial API is running" });
 });
 
 // Apply rate limiter to POST requests only
