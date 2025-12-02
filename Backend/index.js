@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 
 const app = express();
 const PORT = 8000;
+app.set("trust proxy", 1);
 const defaultOrigins = ["http://localhost:5173", "https://git-tutorials.netlify.app"]; 
 const envOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
@@ -32,16 +33,22 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 //  Rate Limiter: max 5 requests per 10 minutes per IP
-// Skip rate limiting for OPTIONS (preflight) requests
 const tutorialLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, //10 min
   max:5,
+  skip: (req) => req.method === "OPTIONS",
   message:{
     error: "Too many requests. Please try again after some time..."
   },
-  standardHeaders:true,
-  legacyHeaders:false,
+
+  standardHeaders: true,
+  legacyHeaders: false,
 });
+
+app.get('/',(req,res) => {
+  res.status(200).json({message: "Welcome to gitTutorial Backend"})
+})
+
 app.get('/healthz',(req,res) => {
   res.status(200).json({message: "Health route is working"})
 })

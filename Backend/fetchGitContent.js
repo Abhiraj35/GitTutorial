@@ -64,14 +64,33 @@ async function fetchWithAuth(url){
   return res.json();
 }
 
+function parseRepoUrl(repoUrl) {
+  if (!repoUrl) {
+    throw new Error("Invalid GitHub repo URL");
+  }
+
+  // Remove query params and # fragments
+  repoUrl = repoUrl.split("?")[0].split("#")[0];
+
+  // Remove trailing .git
+  repoUrl = repoUrl.replace(/\.git$/, "");
+
+  // Match basic GitHub URL structure
+  const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+
+  if (!match || !match[1] || !match[2]) {
+    throw new Error("Invalid GitHub repo URL. Use: https://github.com/user/repo");
+  }
+
+  const owner = match[1];
+  const repo = match[2];
+
+  return { owner, repo };
+}
+
 async function fetchFilesFromGitHub(repoUrl) {
   try {
-    const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)(\/|$)/);
-    if (!match || !match[1] || !match[2]) {
-      throw new Error("Invalid GitHub repo URL. Use format: https://github.com/user/repo");
-    }
-
-    const [_, owner, repo] = match;
+    const { owner, repo } = parseRepoUrl(repoUrl);
     const repoMeta = await fetchWithAuth(`https://api.github.com/repos/${owner}/${repo}`);
     const defaultBranch = repoMeta.default_branch || "main";
 
