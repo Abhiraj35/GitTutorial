@@ -63,8 +63,8 @@ const Home = () => {
       }
       const data = await res.json();
       setTutorial(data);
-    } catch (_ERR) {
-      setError("Failed to generate tutorial. Please check the repo URL.");
+    } catch (error) {
+      setError(error.message || "Failed to generate tutorial. Please check the repo URL.");
     } finally {
       setLoading(false);
     }

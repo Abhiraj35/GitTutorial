@@ -1,7 +1,8 @@
 import fetch from "node-fetch";
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config();
 
+// Allowed file types
 const allowedExtensions = [
   ".js",
   ".jsx",
@@ -16,10 +17,13 @@ const allowedExtensions = [
   ".java",
   ".ejs",
 ];
+
 const maxFileSize = 40 * 1024; // 40KB
 const maxTotalLength = 100000;
-
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+// Delay helper (to avoid rate-limit spam)
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function isCodeFile(filePath) {
   const ext = filePath.includes(".")
@@ -44,56 +48,90 @@ function prioritizeFiles(files) {
   ];
 
   return files.sort((a, b) => {
-    const aScore = priority.findIndex((p) => a.path.toLowerCase().endsWith(p));
-    const bScore = priority.findIndex((p) => b.path.toLowerCase().endsWith(p));
+    const aScore = priority.findIndex((p) =>
+      a.path.toLowerCase().endsWith(p)
+    );
+    const bScore = priority.findIndex((p) =>
+      b.path.toLowerCase().endsWith(p)
+    );
     return (
-      (aScore === -1 ? Infinity : aScore) - (bScore === -1 ? Infinity : bScore)
+      (aScore === -1 ? Infinity : aScore) -
+      (bScore === -1 ? Infinity : bScore)
     );
   });
 }
 
-async function fetchWithAuth(url){
-  const headers = GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}`} : {};
+// Authenticated fetch (with proper GitHub headers)
+async function fetchWithAuth(url) {
+  const headers = {
+    "User-Agent": "GitTutorial-App",
+    Accept: "application/vnd.github+json",
+  };
 
-  const res = await fetch(url,{headers});
-
-  if(!res.ok){
-    throw new Error(`Github API error ${res.status}: ${res.statusText}`);
+  if (GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
   }
 
-  return res.json();
+  const res = await fetch(url, { headers });
+
+  const text = await res.text(); // text-first to prevent parse crash
+
+  if (!res.ok) {
+    throw new Error(
+      `GitHub API error ${res.status}: ${text.slice(0, 200)}`
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("GitHub API returned invalid JSON.");
+  }
 }
 
+// Authenticated RAW fetch (for file content)
+async function fetchRawFile(url) {
+  const headers = {
+    "User-Agent": "GitTutorial-App",
+  };
+
+  if (GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
+  }
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) return null;
+
+  return res.text();
+}
+
+// Parse repo URL
 function parseRepoUrl(repoUrl) {
-  if (!repoUrl) {
-    throw new Error("Invalid GitHub repo URL");
-  }
+  if (!repoUrl) throw new Error("Invalid GitHub repo URL");
 
-  // Remove query params and # fragments
-  repoUrl = repoUrl.split("?")[0].split("#")[0];
+  repoUrl = repoUrl.split("?")[0].split("#")[0].replace(/\.git$/, "");
 
-  // Remove trailing .git
-  repoUrl = repoUrl.replace(/\.git$/, "");
-
-  // Match basic GitHub URL structure
   const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+  if (!match) throw new Error("Invalid GitHub URL. Use https://github.com/user/repo");
 
-  if (!match || !match[1] || !match[2]) {
-    throw new Error("Invalid GitHub repo URL. Use: https://github.com/user/repo");
-  }
-
-  const owner = match[1];
-  const repo = match[2];
-
-  return { owner, repo };
+  return { owner: match[1], repo: match[2] };
 }
 
+// Main function
 async function fetchFilesFromGitHub(repoUrl) {
   try {
     const { owner, repo } = parseRepoUrl(repoUrl);
-    const repoMeta = await fetchWithAuth(`https://api.github.com/repos/${owner}/${repo}`);
+
+    // BACKOFF to reduce API spam
+    await delay(300);
+
+    // Repo metadata
+    const repoMeta = await fetchWithAuth(
+      `https://api.github.com/repos/${owner}/${repo}`
+    );
     const defaultBranch = repoMeta.default_branch || "main";
 
+    // Tree fetch
     const treeData = await fetchWithAuth(
       `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`
     );
@@ -108,25 +146,35 @@ async function fetchFilesFromGitHub(repoUrl) {
     );
 
     const prioritized = prioritizeFiles(codeFiles);
+
     let combinedContent = "";
 
-    const fetchFileContent = async (file) => {
-      const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`;
-      const res = await fetch(rawUrl);
-      if (!res.ok) return null;
-
-      const content = await res.text();
-      const entry = `\n--- FILE: ${file.path} ---\n${sanitizeContent(content)}\n`;
-
-      return entry;
-    };
-
     for (const file of prioritized) {
-      const entry = await fetchFileContent(file);
-      if (!entry) continue;
+      const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`;
+
+      // Retry mechanism
+      let retries = 3;
+      let content = null;
+
+      while (retries > 0 && content === null) {
+        try {
+          content = await fetchRawFile(rawUrl);
+        } catch {
+          await delay(300);
+        }
+        retries--;
+      }
+
+      if (!content) continue;
+
+      const entry = `\n--- FILE: ${file.path} ---\n${sanitizeContent(
+        content
+      )}\n`;
 
       if (combinedContent.length + entry.length > maxTotalLength) break;
+
       combinedContent += entry;
+      await delay(150); // slight delay per file to avoid rate-limit bursts
     }
 
     return combinedContent || "No valid files found.";
