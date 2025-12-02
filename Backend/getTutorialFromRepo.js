@@ -6,7 +6,7 @@ dotenv.config();
 export async function getTutorialFromRepo(repoContent) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.Gemni_API_KEY;
   if (!apiKey) {
-    throw new Error("Missing GEMINI_API_KEY environment variable");
+    throw new Error("Missing GEMINI_API_KEY (or Gemni_API_KEY) environment variable");
   }
   const ai = new GoogleGenAI({ apiKey });
   const prompt = `
@@ -57,7 +57,7 @@ ${repoContent}
   let raw = "";
 
   try {
-    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite-preview-06-17';
+    const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
     const result = await ai.models.generateContent({
       model,
       contents: prompt

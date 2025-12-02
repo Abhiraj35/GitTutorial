@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
 import { getTutorialFromRepo } from "./getTutorialFromRepo.js";
 import { fetchGitContent } from "./fetchGitContent.js";
 import rateLimit from 'express-rate-limit';
@@ -18,8 +17,10 @@ const allowedOrigins = new Set([...defaultOrigins, ...envOrigins]);
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
-    const isAllowed = allowedOrigins.has(origin) || origin.endsWith(".vercel.app");
-    callback(null, isAllowed);
+    if (allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"), false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -29,8 +30,7 @@ const corsOptions = {
 
 // Apply CORS before rate limiting to handle preflight requests
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
-
+app.use(express.json());
 //  Rate Limiter: max 5 requests per 10 minutes per IP
 // Skip rate limiting for OPTIONS (preflight) requests
 const tutorialLimiter = rateLimit({
@@ -43,7 +43,7 @@ const tutorialLimiter = rateLimit({
   legacyHeaders:false,
 });
 app.get('/healthz',(req,res) => {
-  res.status(400).json({message: "Health route is working"})
+  res.status(200).json({message: "Health route is working"})
 })
 // Apply rate limiter to POST requests only
 app.post("/api/tutorial", tutorialLimiter, async (req, res) => {
@@ -57,7 +57,22 @@ app.post("/api/tutorial", tutorialLimiter, async (req, res) => {
     res.json(tutorial); 
   } catch (err) {
     console.error("Server error:", err);
-    res.status(500).json({ error: err.message || "Internal server error" });
+
+    const message = err?.message || "";
+
+    if (message.startsWith("Invalid GitHub repo URL")) {
+      return res.status(400).json({ error: message });
+    }
+
+    if (/Github API error 404/i.test(message)) {
+      return res.status(404).json({ error: "Repository not found or inaccessible." });
+    }
+
+    if (message === "Failed to parse Gemini output.") {
+      return res.status(502).json({ error: "Upstream AI service returned invalid data. Please try again." });
+    }
+
+    return res.status(500).json({ error: message || "Internal server error" });
   }
 });
 
